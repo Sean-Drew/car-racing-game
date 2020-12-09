@@ -74,7 +74,7 @@ function updateDash() {
     // console.log(player)
     scoreDash.innerHTML = player.score
     lifeDash.innerHTML = player.lives
-    speedDash.innerHTML = player.speed
+    speedDash.innerHTML = Math.round(player.speed * 5)
 }
 
 function playGame(){
@@ -91,7 +91,7 @@ function playGame(){
         if (keys.ArrowDown) {
             console.log('player.ele.y is: ', player.ele.y)
             player.ele.y += 1
-            player.speed = player.speed > 0? (player.speed - 0.2) : 0
+            player.speed = player.speed > 0? (player.speed - 0.05) : 0
         }
         if (keys.ArrowRight) {
             console.log('player.ele.x is: ', player.ele.x)
