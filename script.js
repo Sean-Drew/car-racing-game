@@ -25,7 +25,7 @@ let keys = {
 
 // This function controls starting a game - creates UI elements + a player object & associated variables.
 function startGame() {
-    console.log(gamePlay)
+    // console.log(gamePlay)
     btnStart.style.display = 'none'
     let div = document.createElement('div')
     div.setAttribute('class', 'playerCar')
@@ -46,14 +46,44 @@ function startGame() {
         roadWidth: 250
     }
     startBoard()
+    setupBadGuys(10)
+}
+
+function setupBadGuys(num) {
+    for (let x = 0; x < num; x++) {
+        let temp = `badGuy ${x + 1}`
+        let div = document.createElement('div')
+        div.innerHTML = (x + 1)
+        div.setAttribute('class', 'baddy')
+        div.setAttribute('id', temp)
+        div.style.backgroundColor = randomColor()
+        makeBad(div)
+        container.appendChild(div)
+    }
+}
+
+// Assign random color to NPC cars
+function randomColor() {
+    function c() {
+        let hex = Math.floor(Math.random() * 256).toString(16)
+        return(`0${String(hex)}`).substr(-2)
+    }
+    return '#' + c() + c() + c()
+}
+
+function makeBad(element) {
+    let tempRoad = document.querySelector('.road')
+    element.style.left = tempRoad.offsetLeft + Math.ceil(Math.random() * tempRoad.offsetWidth) - 30 + 'px'
+    element.style.top = `${Math.ceil(Math.random() * (-400))}px`
+    element.speed = Math.ceil(Math.random() * 17) + 2
 }
 
 function startBoard() {
     for (let x = 0; x < 13; x++) {
         let div = document.createElement('div')
         div.setAttribute('class', 'road')
-        div.style.top = (x * 50) + 'px'
-        div.style.width = player.roadWidth + 'px'
+        div.style.top = `${x * 50}px`
+        div.style.width = `${player.roadWidth}px`
         container.appendChild(div)
     }
 }
@@ -74,37 +104,79 @@ function updateDash() {
     // console.log(player)
     scoreDash.innerHTML = player.score
     lifeDash.innerHTML = player.lives
-    speedDash.innerHTML = Math.round(player.speed * 5)
+    speedDash.innerHTML = Math.round(player.speed * 13)
 }
 
-function playGame(){
-    if(gamePlay){
-        // update the game dashboard
-        updateDash()
+function moveRoad() {
+    let tempRoad = document.querySelectorAll('.road')
+    // console.log(tempRoad)
+    let previousRoad = tempRoad[0].offsetLeft
+    let previousWidth = tempRoad[0].offsetWidth
+    let pSpeed = Math.floor(player.speed)
+    for (let x = 0; x < tempRoad.length; x++) {
+        let num = tempRoad[x].offsetTop + pSpeed
+        if (num > 600) {
+            num = num - 650
+            let mover = previousRoad + (Math.floor(Math.random() * 6) - 3)
+            let roadWidth = (Math.floor(Math.random() * 11) - 5) + previousWidth
+            if (roadWidth < 200) roadWidth = 200
+            if (roadWidth > 400) roadWidth = 400
+            if (mover < 100) mover = 100
+            if (mover > 600) mover = 600
+            tempRoad[x].style.left = `${mover}px`
+            tempRoad[x].style.width = `${roadWidth}px`
+            previousRoad = tempRoad[x].offsetLeft
+            previousWidth = tempRoad[x].width
+        }
+        tempRoad[x].style.top = `${num}px`
+    }
+    return {
+        'width' : previousWidth,
+        'left' : previousRoad
+    }
+}
 
-        // assign values to element position, to move the car
+function playGame() {
+    if(gamePlay) {
+        // Update the game dashboard
+        updateDash()
+        // Road movement
+        let roadParams = moveRoad()
+
+        // Assign values to element position, to move the car
         if (keys.ArrowUp) {
-            console.log('player.ele.y is: ', player.ele.y)
+            // console.log('player.ele.y is: ', player.ele.y)
+            if (player.ele.y > 350) 
             player.ele.y -= 1
             player.speed = player.speed < 20? (player.speed + 0.05) : 20
         }
         if (keys.ArrowDown) {
-            console.log('player.ele.y is: ', player.ele.y)
+            // console.log('player.ele.y is: ', player.ele.y)
+            if (player.ele.y < 500)
             player.ele.y += 1
             player.speed = player.speed > 0? (player.speed - 0.05) : 0
         }
         if (keys.ArrowRight) {
-            console.log('player.ele.x is: ', player.ele.x)
+            // console.log('player.ele.x is: ', player.ele.x)
             player.ele.x += (player.speed / 4)
         }
         if (keys.ArrowLeft) {
-            console.log('player.ele.x is: ', player.ele.x)
+            // console.log('player.ele.x is: ', player.ele.x)
             player.ele.x -= (player.speed / 4)
         }
 
-        // actually move the car icon
-        player.ele.style.top = player.ele.y + 'px'
-        player.ele.style.left = player.ele.x + 'px'
+        // Check if car on road, reduce speed if offroad
+        if ((player.ele.x + 40) < roadParams.left || (player.ele.x > (roadParams.left + roadParams.width))) {
+            if (player.ele.y < 500) {
+                player.ele.y += 1
+            }
+            player.speed = player.speed > 0 ? (player.speed - 0.2) : 1
+            console.log('Off Road')
+        }
+
+        // Actually move the car icon
+        player.ele.style.top = `${player.ele.y}px`
+        player.ele.style.left = `${player.ele.x}px`
     }
 
     animationGame = requestAnimationFrame(playGame)
