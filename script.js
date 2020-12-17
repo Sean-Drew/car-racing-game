@@ -43,7 +43,8 @@ function startGame() {
         gameScore: 0,
         carsToPass: 10,
         score: 0,
-        roadWidth: 250
+        roadWidth: 250,
+        gameEndCounter: 0
     }
     startBoard()
     setupBadGuys(10)
@@ -56,7 +57,6 @@ function setupBadGuys(num) {
         div.innerHTML = (x + 1)
         div.setAttribute('class', 'baddy')
         div.setAttribute('id', temp)
-        div.style.backgroundColor = randomColor()
         makeBad(div)
         container.appendChild(div)
     }
@@ -76,6 +76,7 @@ function makeBad(element) {
     element.style.left = tempRoad.offsetLeft + Math.ceil(Math.random() * tempRoad.offsetWidth) - 30 + 'px'
     element.style.top = `${Math.ceil(Math.random() * (-400))}px`
     element.speed = Math.ceil(Math.random() * 17) + 2
+    element.style.backgroundColor = randomColor()
 }
 
 function startBoard() {
@@ -136,12 +137,48 @@ function moveRoad() {
     }
 }
 
+// Collision detection between player car & NPC cars
+function isCollide(a, b) {
+    let aRect = a.getBoundingClientRect()
+    let bRect = b.getBoundingClientRect()
+    // console.log('aRect is: ', aRect)
+    // console.log('bRect is: ', bRect)
+    const boundaryCheck = (aRect.bottom < bRect.top) || (aRect.top > bRect.bottom) || (aRect.right < bRect.left) ||(aRect.left > bRect.right)
+    return !boundaryCheck
+}
+
+function moveBadGuys() {
+    let tempBaddy = document.querySelectorAll('.baddy')
+    for (let i = 0; i < tempBaddy.length; i++) {
+        let y = tempBaddy[i].offsetTop + player.speed - tempBaddy[i].speed
+        if (y > 2000 || y < -2000) {
+            // reset NPC position if it spawns 'out of bounds'
+            makeBad(tempBaddy[i])
+        }
+        else {
+            tempBaddy[i].style.top = `${y}px`
+            let hitCar = isCollide(tempBaddy[i], player.ele)
+            // console.log(hitCar)
+            if (hitCar) {
+                player.speed = 0
+                player.lives --
+                if (player.lives < 1) {
+                    player.gameEndCounter = 1
+                }
+                makeBad(tempBaddy[i])
+            }
+        }
+    }
+}
+
 function playGame() {
     if(gamePlay) {
         // Update the game dashboard
         updateDash()
         // Road movement
         let roadParams = moveRoad()
+        // Move NPC cars
+        moveBadGuys()
 
         // Assign values to element position, to move the car
         if (keys.ArrowUp) {
