@@ -1,6 +1,6 @@
 # Car Racing Game
 
-![wireframe](https://i.imgur.com/u8bpQnM.png)
+![screenshot](https://i.imgur.com/u8bpQnM.png)
 
 
 **A simple browser game. The objective of the game is to safely pass NPC cars and reach the finish line.**
@@ -27,5 +27,5 @@
 
 ## Additional Gameplay Screenshots
 
-![wireframe](https://i.imgur.com/rSuUD8c.png)
-![wireframe](https://i.imgur.com/GeFnsWM.png)
+![screenshot](https://i.imgur.com/rSuUD8c.png)
+![screenshot](https://i.imgur.com/GeFnsWM.png)
