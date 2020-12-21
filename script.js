@@ -26,6 +26,7 @@ let keys = {
 // This function controls starting a game - creates UI elements + a player object & associated variables.
 function startGame() {
     // console.log(gamePlay)
+    container.innerHTML = ''
     btnStart.style.display = 'none'
     let div = document.createElement('div')
     div.setAttribute('class', 'playerCar')
@@ -38,10 +39,10 @@ function startGame() {
     
     player = {
         ele: div,
-        speed: 1,
+        speed: 0,
         lives: 3,
         gameScore: 0,
-        carsToPass: 10,
+        carsToPass: 8,
         score: 0,
         roadWidth: 250,
         gameEndCounter: 0
@@ -92,13 +93,13 @@ function startBoard() {
 function pressKeyOn(event) {
     event.preventDefault()
     keys[event.key] = true
-    console.log('Keys from On: ', keys)
+    // console.log('Keys from On: ', keys)
 }
 
 function pressKeyOff(event) {
     event.preventDefault()
     keys[event.key] = false
-    console.log('Keys from Off: ', keys)
+    // console.log('Keys from Off: ', keys)
 }
 
 function updateDash() {
@@ -150,8 +151,23 @@ function isCollide(a, b) {
 function moveBadGuys() {
     let tempBaddy = document.querySelectorAll('.baddy')
     for (let i = 0; i < tempBaddy.length; i++) {
+        for (let ii = 0; ii < tempBaddy.length; ii++) {
+            if (i != ii && isCollide(tempBaddy[i], tempBaddy[ii])) {
+                tempBaddy[ii].style.top = `${tempBaddy[ii].offsetTop + 20}px`
+                tempBaddy[i].style.top = `${tempBaddy[i].offsetTop - 20}px`
+                tempBaddy[ii].style.left = `${tempBaddy[ii].offsetLeft - 20}px`
+                tempBaddy[i].style.left = `${tempBaddy[i].offsetLeft + 20}px`
+            }
+        }
+
         let y = tempBaddy[i].offsetTop + player.speed - tempBaddy[i].speed
         if (y > 2000 || y < -2000) {
+            if (y > 2000) {
+                player.score ++
+                if (player.score > player.carsToPass) {
+                    gameOverPlay()
+                }
+            }
             // reset NPC position if it spawns 'out of bounds'
             makeBad(tempBaddy[i])
         }
@@ -171,7 +187,19 @@ function moveBadGuys() {
     }
 }
 
-function playGame() {
+function gameOverPlay() {
+    let div = document.createElement('div')
+    div.setAttribute('class', 'road')
+    div.style.top = '0px'
+    div.style.width = '250px'
+    div.style.backgroundColor = 'red'
+    div.innerHTML = 'FINISH'
+    div.style.fontSize = '3em'
+    container.appendChild(div)
+    player.gameEndCounter = 12
+}
+
+function playGame() {      
     if(gamePlay) {
         // Update the game dashboard
         updateDash()
@@ -208,7 +236,7 @@ function playGame() {
                 player.ele.y += 1
             }
             player.speed = player.speed > 0 ? (player.speed - 0.2) : 1
-            console.log('Off Road')
+            // console.log('Off Road')
         }
 
         // Actually move the car icon
@@ -217,4 +245,14 @@ function playGame() {
     }
 
     animationGame = requestAnimationFrame(playGame)
+    
+    if (player.gameEndCounter > 0) {
+        player.gameEndCounter --
+        player.y = (player.y > 60) ? player.y - 30 : 60
+        if (player.gameEndCounter === 0) {
+            gamePlay = false
+            cancelAnimationFrame(animationGame)
+            btnStart.style.display = 'block'
+        }
+    }
 }
